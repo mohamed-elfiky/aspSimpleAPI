@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container-fluid">
+        <h2>Login</h2>
+
+        <div id="messageDiv" style="display:none" class="alert alert-danger"></div>
+        <table class="w-25 table table-striped table-bordered">
+            <tbody>
+                <tr>
+                    <td>Username</td>
+                    <td><input type="text" id="username" name="username" /></td>
+                </tr>
+                <tr>
+                    <td>Password</td>
+                    <td><input type="text" id="password" name="password" /></td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button id="login">Login</button>
+                        <button id="register">Register</button>
+                        <button type="button" id="showData">Show All Users</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div id="response"></div>
+
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script>
+    $(document).ready(function () {
+        $("#login").click(function (e) {
+            $.ajax({
+                type: "POST",
+                url: "/v1.0/auth/login",
+                data: {username: $("#username").val(), password: $("#password").val()},
+                contentType: "application/json",
+                dataType: "json",
+                success: function (result) {
+                    sessionStorage.setItem("accessToken", response.data);
+                    $("#response").html("<h2>User successfully logged in.</h2>");
+                },
+                error: function (req, status, error) {
+                    alert(error);
+                }
+            });
+        });
+
+        $("#register").click(function (e) {
+            var obj = {};
+            obj.userName = $("#username").val();
+            obj.password = $("#password").val();
+            $.ajax({
+
+                type: "POST",
+                url: "/v1.0/auth/register",
+                dataType: "json",
+
+                data: "{'username': obj.userName , 'password': obj.password}",
+                contentType: "application/json",
+                success: function (result) {
+                    alert("Ok now please log in with your credentials");
+                },
+                error: function (req, status, result) {
+                    alert(result.data);
+                }
+            });
+        });
+        $("#showData").click(function () {
+ 
+            $.ajax({
+                type: "Get",
+                url: "/v1.0/users",
+                beforeSend : function (request) {
+                request.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem("accessToken"));},
+                contentType: "application/json",
+                dataType: "json",
+                success: function (response) {
+                    var table = "<table border='1' cellpadding='10'>";
+                    response.data.forEach(function (element) {
+                        var row = "<tr>";
+                        row += "<td>";
+                        row += element.username;
+                        row += "</td>";
+                        row += "</tr>";
+                        table += row;
+                    });
+                table += "</table>";
+                $("#response").append(table);
+                },
+                error: function (req, status, result) {
+                    alert(result.data);
+                }
+            });
+        });
+
+
+   
+
+        $(document).ajaxStart(function () {
+            $("#processDiv").show();
+        });
+
+        $(document).ajaxStop(function () {
+            $("#processDiv").hide();
+        });
+    });
+        </script>
+
+    </div>
+</body>
+</html>
+
+
